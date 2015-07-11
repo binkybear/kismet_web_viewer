@@ -35,6 +35,7 @@ The project relied heavily on [Meatballs1 NetXML-to-CSV](https://github.com/Meat
 ```bash
 sudo pip install virtualenv
 git clone https://github.com/binkybear/kismet_web_viewer.git
+cd kismet_web_viewer
 virtualenv env
 . env/bin/activate
 pip install --upgrade -r requirements.txt
