@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+{% block title %}Kismet Log Viewer - Landing Page{% endblock %}
+{% block content %}
+        <div class="row">
+          <div class="col-md-12 text-center">
+            <h1>Kismet Log Viewer</h1>
+            <p>Upload a netxml file to get started</p>
+            <br>
+              {% with messages = get_flashed_messages(with_categories=true) %}
+              <!-- Categories: success (green), info (blue), warning (yellow), danger (red) -->
+                  <!-- https://gist.github.com/vicow/fc16173c356b79f951d2 -->
+              {% if messages %}
+                {% for category, message in messages %}
+                  <div class="alert alert-{{ category }} alert-dismissible" role="alert">
+                  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                      <span aria-hidden="true">&times;</span></button>
+                  <!-- <strong>Title</strong> -->
+                      {{ message }}
+                  </div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+            <br>
+            <form action="{{ url_for('upload') }}" method=post enctype=multipart/form-data>
+                        <span class="btn btn-default btn-file">
+              <input type="file" name="file">
+            </span>
+              <input type="submit" class="btn btn-info" value="Process File">
+            </form>
+          </div>
+        </div>
+{% endblock %}
