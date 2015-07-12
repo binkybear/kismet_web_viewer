@@ -21,12 +21,12 @@
               {% endif %}
             {% endwith %}
             <br>
-            <form action="{{ url_for('upload') }}" method=post enctype=multipart/form-data>
-                        <span class="btn btn-default btn-file">
-              <input type="file" name="file">
-            </span>
-              <input type="submit" class="btn btn-info" value="Process File">
-            </form>
+              <center>
+              <form action="upload" method="post" enctype="multipart/form-data">
+                <input type="file" multiple="" name="file[]" class="span3" /><br />
+                <input type="submit" value="Upload"  class="span2">
+              </form>
+              </center>
           </div>
         </div>
 {% endblock %}

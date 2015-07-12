@@ -6,9 +6,8 @@ from app.netxml_to_csv import process_net_xml
 
 app = Flask(__name__)
 #app.config['DEBUG'] = True
+app.config['SECRET_KEY'] = 'secret!' # If we plan to use sessions later, change this secret key!
 
-# If we plan to use sessions later, change this secret key!
-app.config['SECRET_KEY'] = 'secret!'
 
 # Handle 404
 @app.errorhandler(404)
@@ -37,42 +36,48 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1] in allowed_extensions
 
 
-@app.route('/process_file', methods=['POST'])
+@app.route('/upload', methods=['POST'])
 def upload():
-    netxml = request.files['file']  # Get the file
+    #netxml = request.files['file']  # Get the file
 
-    if netxml and allowed_file(netxml.filename):
-        netxml = netxml.read()  # Convert netxml file to string for processing
-        netxml_json = process_net_xml(netxml)  # Returns a list of dictionaries
+    uploaded_files = request.files.getlist("file[]")
+    return_list = []
 
-        # Add a data to JSON array...doesn't seem to work without it. Then convert to JSON
-        newjson = {"data": netxml_json}
-        newjson = dumps(newjson)
+    for netxml in uploaded_files:
+        if netxml and allowed_file(netxml.filename):
+            netxml = netxml.read()  # Convert netxml file to string for processing
+            return_list += process_net_xml(netxml)  # Returns a list of dictionaries
 
-        # Convert JSON 2 HTML Table
-        netxml_html = json2html.convert(json=newjson,
-                                        table_attributes="cellpadding=\"0\" cellspacing=\"0\" border=\"0\" class=\"table table-striped table-bordered table-condensed\" id=\"main\"")  # Create HTML table
+        elif not netxml:
+            flash(u'No file uploaded. Please select a file below', 'danger')
+            return render_template('index.html')
+        elif not allowed_file(netxml.filename):
+            flash(u'Invalid file extension. Must be a netxml file.', 'danger')
+            return render_template('index.html')
+        else:
+            flash(u'Error processing file', 'danger')
+            return render_template('index.html')
 
+    # Add a data to JSON array...doesn't seem to work without it. Then convert to JSON
+    newjson = {"data": return_list}
+    newjson = dumps(newjson)
 
-        # Hacky code to get table to play nice with datatables
-        #
-        netxml_html = netxml_html[410:]
-        netxml_html = netxml_html[:-26]
-        start_table = "<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" class=\"table table-striped table-bordered table-condensed\" id=\"main\"><thead><tr><th>Cipher</th><th>DBM</th><th>ESSID</th><th>BSSID</th><th>Privacy</th><th>Authenticaton</th><th>Location</th><th>Channel</th><th>Client</th></tr></thead><tbody>"
-        end_table = "</tbody></table>"
+    # Convert JSON 2 HTML Table
+    netxml_html = json2html.convert(json=newjson,
+                                    table_attributes="cellpadding=\"0\" cellspacing=\"0\" border=\"0\" class=\"table table-striped table-bordered table-condensed\" id=\"main\"")  # Create HTML table
 
-        netxml_html = start_table + netxml_html + end_table
+    print netxml_html
 
-        return render_template('upload.html', table=Markup(netxml_html))
-    elif not netxml:
-        flash(u'No file uploaded. Please select a file below', 'danger')
-        return render_template('index.html')
-    elif not allowed_file(netxml.filename):
-        flash(u'Invalid file extension. Must be a netxml file.', 'danger')
-        return render_template('index.html')
-    else:
-        flash(u'Error processing file', 'danger')
-        return render_template('index.html')
+    # Hacky code to get table to play nice with datatables
+    #
+    netxml_html = netxml_html[410:]
+    netxml_html = netxml_html[:-26]
+    start_table = "<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" class=\"table table-striped table-bordered table-condensed\" id=\"main\"><thead><tr><th>Cipher</th><th>DBM</th><th>ESSID</th><th>BSSID</th><th>Privacy</th><th>Authenticaton</th><th>Location</th><th>Channel</th><th>Client</th></tr></thead><tbody>"
+    end_table = "</tbody></table>"
+
+    netxml_html = start_table + netxml_html + end_table
+
+    return render_template('upload.html', table=Markup(netxml_html))
 
 
 if __name__ == '__main__':
